@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="Layzer">
+<meta name="copyright" content="Layzer">
+<meta property="og:title" content="停車場空位查詢'" >
+<meta property="og:description" content="停車場空位查詢" >
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-79209777-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-79209777-1');
+</script>
+<title>MIS.cat 停車場空位查詢</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function init() {
+	parseHash();
+}
+function parseHash() {
+	var queryString = {};
+	window.location.href.replace(
+		new RegExp("([^?=&;#]+)(=([^&;]*))", "g"),
+		function($0, $1, $2, $3) {queryString[$1] = decodeURIComponent($3); }
+	);
+	
+	if (typeof queryString['t'] !== 'undefined') {
+		getSpace(queryString['t'], queryString['name']);
+	} else {
+		showAll();
+	}
+	
+}
+
+function showAll() {
+	$.getJSON( "https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_alldesc.json", function( data ) {
+		var items = [];
+		$.each( data['data']['park'], function( key, val ) {
+			items.push( "<li id='" + key + "'><a href=\"#t=" + val['id'] + "&name=" + val['name'] + "\">" + key + " " + val['name'] + "</a>"
+				 + "<br />汽車：" + val['totalcar'] + "、機車：" + val['totalmotor'] + "、腳踏車：" + val['totalbike'] + "</li>" );
+		});
+
+		$( "<ul/>", {
+			"class": "my-new-list",
+			html: items.join( "" )
+		}).appendTo( "body" );
+	});
+}
+
+function getSpace(target, name) {
+	$("body").html("<h1>"+name+"</h1>");
+	$.getJSON( "https://tcgbusfs.blob.core.windows.net/blobtcmsv/TCMSV_allavailable.json", function( data ) {
+		var items = [];
+		$.each( data['data']['park'], function( key, val ) {
+			if ( val['id'] == target ){
+				var outputHTML = "";
+				outputHTML += "<h2>汽車車位" + val['availablecar'] + "</h2>";
+				outputHTML += "<h2>機車車位" + val['availablemotor'] + "</h2>";
+				outputHTML += "<a href=\"\">查詢其他停車場</a>";
+				if (outputHTML == "") {
+					$("body").append("<h2>查無資料</h2>");
+				} else {
+					$("body").append(outputHTML);
+				}
+				return false;
+			}
+		});
+
+	});
+}
+
+</script>
+<style>
+
+</style>
+</head>
+<body onload="init()" onhashchange="parseHash()">
+
+
+</body>
+</html>
